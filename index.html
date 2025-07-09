@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Galaxy of Memories</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0c0e1a 0%, #1a1c2c 50%, #0c0e1a 100%);
+            color: #f5e9e9;
+            font-family: 'Montserrat', sans-serif;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+            cursor: default;
+        }
+
+        #galaxy {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        .container > * {
+            pointer-events: auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 0;
+            opacity: 0;
+            animation: fadeIn 2s forwards 0.5s;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 15px rgba(255, 105, 180, 0.7);
+            background: linear-gradient(to right, #f5c3e6, #ffb6c1, #e6b0ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            max-width: 600px;
+            margin: 0 auto;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        .star {
+            position: absolute;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+            animation: twinkle var(--duration) infinite ease-in-out;
+            opacity: 0;
+        }
+
+        .memory-star {
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.5s ease;
+            z-index: 15;
+            box-shadow: 0 0 15px currentColor;
+            animation: pulse 3s infinite ease-in-out;
+            transform: translate(-50%, -50%);
+        }
+
+        .memory-star:hover {
+            transform: translate(-50%, -50%) scale(1.8);
+            box-shadow: 0 0 25px currentColor;
+            animation: none;
+        }
+
+        .constellation-line {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(to right, transparent, #ffb6c1, transparent);
+            transform-origin: 0 0;
+            z-index: 10;
+            opacity: 0.7;
+            transition: opacity 0.5s ease;
+        }
+
+        .memory-content {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            width: 85%;
+            max-width: 600px;
+            background: rgba(20, 15, 35, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 0 40px rgba(255, 105, 180, 0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 182, 193, 0.3);
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.6s ease;
+        }
+
+        .memory-content.active {
+            opacity: 1;
+            pointer-events: all;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .memory-content h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.2rem;
+            margin-bottom: 15px;
+            color: #ffb6c1;
+            text-align: center;
+        }
+
+        .memory-date {
+            text-align: center;
+            font-size: 0.9rem;
+            opacity: 0.7;
+            margin-bottom: 25px;
+            letter-spacing: 1px;
+        }
+
+        .memory-text {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            margin-bottom: 25px;
+            font-weight: 300;
+            text-align: center;
+        }
+
+        .memory-image {
+            width: 100%;
+            height: 250px;
+            background-size: cover;
+            background-position: center;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 182, 193, 0.2);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+
+        .close-btn:hover {
+            opacity: 1;
+        }
+
+        .close-btn:before, .close-btn:after {
+            content: '';
+            position: absolute;
+            top: 14px;
+            left: 0;
+            width: 30px;
+            height: 2px;
+            background: #ffb6c1;
+        }
+
+        .close-btn:before {
+            transform: rotate(45deg);
+        }
+
+        .close-btn:after {
+            transform: rotate(-45deg);
+        }
+
+        .instructions {
+            position: absolute;
+            bottom: 30px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 1rem;
+            opacity: 0.7;
+            letter-spacing: 1px;
+            z-index: 25;
+            animation: fadePulse 4s infinite;
+        }
+
+        .nebula {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.15;
+            z-index: 2;
+        }
+
+        .heart-constellation {
+            position: absolute;
+            opacity: 0;
+            transition: opacity 1s ease;
+            z-index: 12;
+            pointer-events: none;
+        }
+
+        .final-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s ease;
+            z-index: 150;
+            max-width: 90%;
+            background: rgba(20, 15, 35, 0.9);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 182, 193, 0.3);
+            box-shadow: 0 0 50px rgba(255, 105, 180, 0.5);
+        }
+
+        .final-message.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .final-message h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: #ffb6c1;
+            text-shadow: 0 0 20px rgba(255, 105, 180, 0.7);
+        }
+
+        .final-message p {
+            font-size: 1.5rem;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .close-final {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            opacity: 0.7;
+        }
+
+        .close-final:hover {
+            opacity: 1;
+        }
+
+        .close-final:before, .close-final:after {
+            content: '';
+            position: absolute;
+            top: 12px;
+            left: 0;
+            width: 25px;
+            height: 2px;
+            background: #ffb6c1;
+        }
+
+        .close-final:before {
+            transform: rotate(45deg);
+        }
+
+        .close-final:after {
+            transform: rotate(-45deg);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.2; }
+            50% { opacity: 1; }
+            100% { opacity: 0.2; }
+        }
+
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 15px currentColor; }
+            50% { transform: translate(-50%, -50%) scale(1.3); box-shadow: 0 0 30px currentColor; }
+            100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 15px currentColor; }
+        }
+
+        @keyframes fadePulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            .subtitle {
+                font-size: 1rem;
+                padding: 0 20px;
+            }
+            .memory-content {
+                width: 95%;
+                padding: 20px;
+            }
+            .memory-content h2 {
+                font-size: 1.8rem;
+            }
+            .final-message h2 {
+                font-size: 2.2rem;
+            }
+            .final-message p {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="galaxy"></div>
+    
+    <div class="container">
+        <header>
+            <h1>Our Galaxy of Memories</h1>
+            <p class="subtitle">Every star holds a moment, every constellation tells our story</p>
+        </header>
+        
+        <div class="memory-content" id="memoryContent">
+            <div class="close-btn" id="closeBtn"></div>
+            <h2 id="memoryTitle">Our First Date</h2>
+            <p class="memory-date" id="memoryDate">June 12, 2023</p>
+            <div class="memory-image" id="memoryImage"></div>
+            <p class="memory-text" id="memoryText">I remember how nervous I was picking you up that night. The way you smiled when you opened the door took my breath away. We talked for hours at that little Italian place, and I knew then I wanted to know everything about you.</p>
+        </div>
+        
+        <div class="final-message" id="finalMessage">
+            <div class="close-final" id="closeFinal"></div>
+            <h2>To My Forever Love</h2>
+            <p>Our story is written in the stars, a constellation that grows brighter with each passing day. I can't wait to create countless more memories with you.</p>
+        </div>
+        
+        <p class="instructions">Hover over the stars to see constellations • Click to reveal our memories</p>
+    </div>
+
+    <script>
+        // Galaxy memories data - easily customizable
+        const memories = [
+            {
+                id: 1,
+                title: "Introduction to A New Life", 
+                date: "May 30, 2025",
+                text: "A stranger met me on a Roblox game Ro-Meet. Strangers to lovers, they say. I never thought it would be true for me. But there you were, with your charming smile and playful banter. That first conversation sparked something I never expected.",
+                color: "#ff6b9d",
+                x: 25,
+                y: 40,
+                connections: [2, 3],
+                image: "url('https://media.discordapp.net/attachments/1378078360089137225/1392183575050326076/D9CQ6Kn.png?ex=686e9b7d&is=686d49fd&hm=3ed8936a5a761fb566b8f4443ebf18dfb912958a572543ded44f77ed946595fb&=&format=webp&quality=lossless&width=235&height=235')"
+            },
+            {
+                id: 2,
+                title: "My Pshycologist",
+                date: "May 31, 2025",
+                text: "A new friend became my emotional psychologist and tried to help me with my problems while fighting with her own bitrayals bravely. ",
+                color: "#ffaa71",
+                x: 40,
+                y: 60,
+                connections: [1, 4],
+                image: "url('https://usrbg.is-hardly.online/usrbg/v2/1107911435033518091?29d2=&size=1024&format=webp&width=686&height=0')"
+            },
+            {
+                id: 3,
+                title: "Real Compliment",
+                date: "May 31, 2025",
+                text: "You always were and are the most beautiful person I have ever met. I never knew how much I needed someone like you in my life until you came along. Your reaction; I wasn't flirting but now I can.",
+                color: "#a18aff",
+                x: 15,
+                y: 65,
+                connections: [1, 5],
+                image: "url('https://media.discordapp.net/attachments/1378078360089137225/1392375486742528143/nQRdNWP.png?ex=686f4e39&is=686dfcb9&hm=1117c56f94d1245851d6cbfc722065e1ff817a88beb497be876f42e1ebec6ba3&=&format=webp&quality=lossless&width=344&height=184')"
+            },
+            {
+                id: 4,
+                title: "Letters Of Friendship",
+                date: "May 31, 2025",
+                text: "When you asked me for that you can send me letter, I was confused that a random will ask me for my address but see time is changed. I wonder, do you still write letters?",
+                color: "#6bd9ff",
+                x: 55,
+                y: 35,
+                connections: [2, 6],
+                image: "url('https://www.glasgowunisrc.org/pageassets/advice/employment/formal-letter/aaron-burden-y02jEX_B0O0-unsplash.jpg?thumbnail=true&height=465&width=620&resize_type=CropToFit')"
+            },
+            {
+                id: 5,
+                title: "Slient Love",
+                text: "Even not trying to fall in love, I did. My brain was protecting my heart from the pain to getting broken again but you broke that wall. I never knew how much I needed someone like you in my life until you came along.",
+                color: "#c3a6ff",
+                x: 30,
+                y: 75,
+                connections: [3, 6],
+                image: "url('https://media.istockphoto.com/id/1178860467/vector/modern-white-color-brick-pattern-wall-texture-grunge-background-xmas-vector-illustration.jpg?s=612x612&w=0&k=20&c=Yav7Za9F_43ucd6tpVZIjj83Cybz_xV7uPpGhhVtETc=')"
+            },
+            {
+                id: 6,
+                title: "Eyes or Diamonds",
+                date: "July 9, 2025",
+                text: "As for me, the most beautiful thing a person is there eyes. Your eyes are one of the most beautiful things I ever seen. Yeah I wanted to see depth of your eyes, but I never thought that I will fall in love with them again on video call.",
+                color: "#ff7eb9",
+                x: 45,
+                y: 80,
+                connections: [4, 5],
+                image: "url('https://scontent.fskt1-1.fna.fbcdn.net/v/t1.15752-9/517360754_24350770957841702_2174656263433135587_n.png?_nc_cat=101&ccb=1-7&_nc_sid=0024fc&_nc_ohc=AvMSbVSbLJkQ7kNvwFJWYmP&_nc_oc=AdnwhwMZe1XC46xOSPWodN8Lzq0GtFJR6wv3g_zr97hmmVdJdzwtfzA_HNMlR9ODp4o&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=scontent.fskt1-1.fna&oh=03_Q7cD2wGf-1oq8GUOfTobj1-KZaWmUcziQ0BtmWUG0h0x5356vQ&oe=6895BC43')"
+            },
+            {
+                id: 7,
+                title: "Unintentional Heartbreak",
+                date: "June 26, 2025",
+                text: "Broke someone's heart unintentionally. I never wanted to hurt you, but sometimes things happen that we can't control. I was just tring that you don't awake my heart but somehow you did. In a way you got hurt. I am sorry for that.",
+                color: "#ffb6c1",
+                x: 70,
+                y: 50,
+                connections: [5, 6],
+                image: "url('https://cdn.tinybuddha.com/wp-content/uploads/2015/04/Heartbreak.jpg')"
+            },
+            {
+                id: 8,
+                title: "First Call",
+                date: "July 01, 2025",
+                text: "Never did a call with a girl before, that was heart racing. Your voice is so I don't know how to describe it.",
+                color: "#ffb6c1",
+                x: 80,
+                y: 37,
+                connections: [5, 1, 6],
+                image: "url('https://img.freepik.com/premium-vector/young-woman-have-video-call-with-her-boyfriend-smartphone_61747-545.jpg?w=826')"
+            }
+            
+        ];
+
+        // DOM Elements
+        const galaxy = document.getElementById('galaxy');
+        const memoryContent = document.getElementById('memoryContent');
+        const memoryTitle = document.getElementById('memoryTitle');
+        const memoryDate = document.getElementById('memoryDate');
+        const memoryText = document.getElementById('memoryText');
+        const memoryImage = document.getElementById('memoryImage');
+        const closeBtn = document.getElementById('closeBtn');
+        const finalMessage = document.getElementById('finalMessage');
+        const closeFinal = document.getElementById('closeFinal');
+
+        // State management
+        let activeMemoryId = null;
+        let activeLines = [];
+        let viewedMemories = new Set();
+
+        // Create background stars
+        function createBackgroundStars() {
+            const starCount = 400;
+            
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                
+                // Random position
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
+                
+                // Random size (0.5px to 2px)
+                const size = Math.random() * 1.5 + 0.5;
+                
+                // Random twinkle duration (2s to 5s)
+                const duration = Math.random() * 3 + 2;
+                
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.left = `${x}%`;
+                star.style.top = `${y}%`;
+                star.style.setProperty('--duration', `${duration}s`);
+                
+                // Random delay for twinkling
+                star.style.animationDelay = `${Math.random() * 5}s`;
+                
+                galaxy.appendChild(star);
+            }
+        }
+
+        // Create memory stars
+        function createMemoryStars() {
+            memories.forEach(memory => {
+                const star = document.createElement('div');
+                star.classList.add('memory-star');
+                star.style.left = `${memory.x}%`;
+                star.style.top = `${memory.y}%`;
+                star.style.backgroundColor = memory.color;
+                star.style.boxShadow = `0 0 15px ${memory.color}`;
+                star.dataset.id = memory.id;
+                
+                // Add hover effect to show connections
+                star.addEventListener('mouseover', () => showConnections(memory.id));
+                star.addEventListener('mouseout', hideConnections);
+                
+                // Add click event to show memory
+                star.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    showMemory(memory.id);
+                });
+                
+                galaxy.appendChild(star);
+            });
+        }
+
+        // Create nebula effects
+        function createNebulas() {
+            const nebulaCount = 5;
+            const colors = ['#ff6b9d', '#6bd9ff', '#a18aff', '#ffaa71', '#ff7eb9'];
+            
+            for (let i = 0; i < nebulaCount; i++) {
+                const nebula = document.createElement('div');
+                nebula.classList.add('nebula');
+                nebula.style.background = `radial-gradient(circle, ${colors[i]}, transparent)`;
+                nebula.style.width = `${Math.random() * 50 + 30}%`;
+                nebula.style.height = nebula.style.width;
+                nebula.style.left = `${Math.random() * 100}%`;
+                nebula.style.top = `${Math.random() * 100}%`;
+                nebula.style.opacity = `${Math.random() * 0.1 + 0.05}`;
+                
+                galaxy.appendChild(nebula);
+            }
+        }
+
+        // Show connections between stars
+        function showConnections(starId) {
+            // Clear any existing lines
+            hideConnections();
+            
+            const currentMemory = memories.find(m => m.id === starId);
+            if (!currentMemory) return;
+            
+            // Create lines for each connection
+            currentMemory.connections.forEach(connId => {
+                const connectedMemory = memories.find(m => m.id === connId);
+                if (connectedMemory) {
+                    createConnectionLine(
+                        currentMemory.x, 
+                        currentMemory.y, 
+                        connectedMemory.x, 
+                        connectedMemory.y,
+                        currentMemory.color
+                    );
+                }
+            });
+            
+            // Create heart constellation for the first star
+            if (starId === 1) {
+                createHeartConstellation();
+            }
+        }
+
+        // Create connection line
+        function createConnectionLine(x1, y1, x2, y2, color) {
+            const line = document.createElement('div');
+            line.classList.add('constellation-line');
+            
+            // Calculate distance and angle
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+            
+            line.style.width = `${distance}%`;
+            line.style.left = `${x1}%`;
+            line.style.top = `${y1}%`;
+            line.style.transform = `rotate(${angle}deg)`;
+            line.style.background = `linear-gradient(to right, transparent, ${color}, transparent)`;
+            line.style.opacity = '0.7';
+            
+            galaxy.appendChild(line);
+            activeLines.push(line);
+        }
+
+        // Create heart constellation
+        function createHeartConstellation() {
+            const heart = document.createElement('div');
+            heart.classList.add('heart-constellation');
+            heart.style.left = '50%';
+            heart.style.top = '50%';
+            heart.style.width = '40%';
+            heart.style.height = '40%';
+            heart.style.transform = 'translate(-50%, -50%)';
+            heart.style.background = 'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23ff6b9d\' stroke-width=\'0.5\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><path d=\'M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z\'></path></svg>") no-repeat center';
+            heart.style.backgroundSize = 'contain';
+            heart.style.opacity = '0.2';
+            
+            galaxy.appendChild(heart);
+            setTimeout(() => {
+                heart.style.opacity = '0';
+                setTimeout(() => {
+                    if (heart.parentNode) {
+                        heart.parentNode.removeChild(heart);
+                    }
+                }, 1000);
+            }, 1500);
+        }
+
+        // Hide connections
+        function hideConnections() {
+            activeLines.forEach(line => {
+                line.style.opacity = '0';
+                setTimeout(() => {
+                    if (line.parentNode) {
+                        line.parentNode.removeChild(line);
+                    }
+                }, 500);
+            });
+            activeLines = [];
+        }
+
+        // Show memory details
+        function showMemory(id) {
+            const memory = memories.find(m => m.id === id);
+            if (!memory) return;
+            
+            memoryTitle.textContent = memory.title;
+            memoryDate.textContent = memory.date;
+            memoryText.textContent = memory.text;
+            memoryImage.style.backgroundImage = memory.image;
+            
+            memoryContent.classList.add('active');
+            activeMemoryId = id;
+            
+            // Track viewed memories
+            viewedMemories.add(id);
+            
+            // Show final message if all memories have been viewed
+            if (viewedMemories.size === memories.length) {
+                setTimeout(() => {
+                    finalMessage.classList.add('active');
+                }, 1500);
+            }
+        }
+
+        // Close memory details
+        closeBtn.addEventListener('click', () => {
+            memoryContent.classList.remove('active');
+        });
+
+        // Close final message
+        closeFinal.addEventListener('click', () => {
+            finalMessage.classList.remove('active');
+        });
+
+        // Close memory when clicking outside
+        document.addEventListener('click', (e) => {
+            if (memoryContent.classList.contains('active')) {
+                if (!memoryContent.contains(e.target)) {
+                    memoryContent.classList.remove('active');
+                }
+            }
+        });
+
+        // Initialize the galaxy
+        function initGalaxy() {
+            createBackgroundStars();
+            createMemoryStars();
+            createNebulas();
+            
+            // Add sexy glow effect to the galaxy
+            const glow = document.createElement('div');
+            glow.style.position = 'fixed';
+            glow.style.top = '0';
+            glow.style.left = '0';
+            glow.style.width = '100%';
+            glow.style.height = '100%';
+            glow.style.background = 'radial-gradient(circle at center, rgba(255,105,180,0.1) 0%, transparent 70%)';
+            glow.style.zIndex = '3';
+            glow.style.pointerEvents = 'none';
+            document.body.appendChild(glow);
+        }
+        window.addEventListener('load', initGalaxy);
+    </script>
+</body>
+</html>
